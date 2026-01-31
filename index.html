@@ -122,20 +122,32 @@
 
   async function loadData() {
     const res = await fetch(API_URL);
-    const data = await res.json();
+    const raw = await res.json();
+
+    // === AKUMULASI POINT BERDASARKAN NAMA ===
+    const aggregated = {};
+    raw.forEach(row => {
+      if (!aggregated[row.name]) {
+        aggregated[row.name] = 0;
+      }
+      aggregated[row.name] += Number(row.point);
+    });
+
+    const finalData = Object.entries(aggregated)
+      .map(([name, point]) => ({ name, point }))
+      .sort((a, b) => b.point - a.point);
+
     const board = document.getElementById('board');
     board.innerHTML = '';
 
-    data
-      .sort((a,b)=>b.point-a.point)
-      .forEach((row, i)=>{
-        board.innerHTML += `
-          <tr>
-            <td>${i+1}</td>
-            <td>${row.name}</td>
-            <td>${row.point}</td>
-          </tr>`;
-      });
+    finalData.forEach((row, i) => {
+      board.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${row.name}</td>
+          <td>${row.point}</td>
+        </tr>`;
+    });
   }
 
   loadData();
