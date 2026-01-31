@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Race Event Leaderboard</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f8;
+      color: #111827;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 30px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.08);
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+    }
+    button {
+      background: #2563eb;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    table {
+      width: 100%;
+      margin-top: 10px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: center;
+    }
+    th {
+      background: #f9fafb;
+      font-weight: 600;
+    }
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Race Event Leaderboard</h1>
+<p class="subtitle">Official Points Tracking System</p>
+
+<div class="container">
+
+  <!-- INPUT -->
+  <div class="card">
+    <h3>Input Race Point (Admin)</h3>
+    <input id="name" placeholder="Nama Racer" />
+    <input id="point" type="number" placeholder="Point" />
+    <button onclick="addPoint()">Submit Point</button>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="card">
+    <h3>Leaderboard</h3>
+    <table>
+      <thead>
+        <tr><th>Rank</th><th>Nama</th><th>Total Point</th></tr>
+      </thead>
+      <tbody id="board"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  // === GOOGLE SHEETS ENDPOINT ===
+  const API_URL = "PASTE_GOOGLE_SCRIPT_URL_DI_SINI";
+
+  async function addPoint() {
+    const name = document.getElementById('name').value;
+    const point = document.getElementById('point').value;
+    if (!name || !point) return alert('Nama dan point wajib diisi');
+
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ name, point })
+    });
+
+    document.getElementById('name').value = '';
+    document.getElementById('point').value = '';
+    loadData();
+  }
+
+  async function loadData() {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+
+    data
+      .sort((a,b)=>b.point-a.point)
+      .forEach((row, i)=>{
+        board.innerHTML += `
+          <tr>
+            <td>${i+1}</td>
+            <td>${row.name}</td>
+            <td>${row.point}</td>
+          </tr>`;
+      });
+  }
+
+  loadData();
+</script>
+
+</body>
+</html>
